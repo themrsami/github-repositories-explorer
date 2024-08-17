@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import SearchBar from '@/components/SearchBar'
 import RepoList from '@/components/RepoList'
 import Filter from '@/components/Filter'
+import TabView from '@/components/TabView'
 import { Repository } from '@/types'
-import Pagination from '@/components/Pagination'
 import ErrorMessage from '@/components/ErrorMessage'
 
 export default function Home() {
@@ -17,6 +17,9 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1)
   const [sortBy, setSortBy] = useState<'stars' | 'forks' | 'updated'>('stars')
   const ITEMS_PER_PAGE = 10
+  const [activeTab, setActiveTab] = useState('search')
+  const [trendingRepos, setTrendingRepos] = useState<Repository[]>([])
+  const [recentRepos, setRecentRepos] = useState<Repository[]>([])
 
   // Extract unique languages from repos
   const languages = useMemo(() => {
@@ -32,6 +35,46 @@ export default function Home() {
       return languageMatch && starsMatch
     })
   }, [repos, selectedLanguage, minStars])
+
+  const fetchTrendingRepos = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch(
+        `https://api.github.com/search/repositories?q=stars:>1000&sort=stars&order=desc&per_page=30`
+      )
+      const data = await response.json()
+      setTrendingRepos(data.items)
+    } catch (error) {
+      setError('Failed to fetch trending repositories')
+    }
+    setLoading(false)
+  }
+
+  const fetchRecentRepos = async () => {
+    setLoading(true)
+    try {
+      const date = new Date()
+      date.setDate(date.getDate() - 7) // Last 7 days
+      const dateString = date.toISOString().split('T')[0]
+      
+      const response = await fetch(
+        `https://api.github.com/search/repositories?q=created:>${dateString}&sort=updated&order=desc&per_page=30`
+      )
+      const data = await response.json()
+      setRecentRepos(data.items)
+    } catch (error) {
+      setError('Failed to fetch recent repositories')
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if (activeTab === 'trending') {
+      fetchTrendingRepos()
+    } else if (activeTab === 'recent') {
+      fetchRecentRepos()
+    }
+  }, [activeTab])
 
   const handleSearch = async (query: string) => {
     if (!query) return
@@ -58,50 +101,58 @@ export default function Home() {
     currentPage * ITEMS_PER_PAGE
   )
 
+  const displayedRepos = useMemo(() => {
+    switch (activeTab) {
+      case 'trending':
+        return trendingRepos
+      case 'recent':
+        return recentRepos
+      default:
+        return filteredRepos
+    }
+  }, [activeTab, trendingRepos, recentRepos, filteredRepos])
+
   return (
     <main className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
           GitHub Repository Explorer
         </h1>
-        <SearchBar onSearch={handleSearch} />
-        {error && <ErrorMessage message={error} />}
-        {repos.length > 0 && (
+        
+        <TabView activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        {activeTab === 'search' && (
           <>
-            <div className="flex justify-between items-center">
-              <Filter
-                languages={languages}
-                selectedLanguage={selectedLanguage}
-                onLanguageChange={setSelectedLanguage}
-                onStarCountChange={setMinStars}
-              />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'stars' | 'forks' | 'updated')}
-                className="p-2 border rounded-lg"
-              >
-                <option value="stars">Stars</option>
-                <option value="forks">Forks</option>
-                <option value="updated">Recently Updated</option>
-              </select>
-            </div>
+            <SearchBar onSearch={handleSearch} />
+            {error && <ErrorMessage message={error} />}
+            {repos.length > 0 && (
+              <div className="flex justify-between items-center">
+                <Filter
+                  languages={languages}
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={setSelectedLanguage}
+                  onStarCountChange={setMinStars}
+                />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'stars' | 'forks' | 'updated')}
+                  className="p-2 border rounded-lg"
+                >
+                  <option value="stars">Stars</option>
+                  <option value="forks">Forks</option>
+                  <option value="updated">Recently Updated</option>
+                </select>
+              </div>
+            )}
           </>
         )}
+
         {loading ? (
           <div className="flex justify-center mt-8">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
           </div>
         ) : (
-          <>
-            <RepoList repositories={paginatedRepos} />
-            {paginatedRepos.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            )}
-          </>
+          <RepoList repositories={displayedRepos} />
         )}
       </div>
     </main>
