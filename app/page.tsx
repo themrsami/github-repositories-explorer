@@ -40,7 +40,7 @@ export default function Home() {
     setLoading(true)
     try {
       const response = await fetch(
-        `https://api.github.com/search/repositories?q=stars:>1000&sort=stars&order=desc&per_page=30`
+        `https://api.github.com/search/repositories?q=stars:>1000&sort=stars&order=desc&per_page=100`
       )
       const data = await response.json()
       setTrendingRepos(data.items)
@@ -58,7 +58,7 @@ export default function Home() {
       const dateString = date.toISOString().split('T')[0]
       
       const response = await fetch(
-        `https://api.github.com/search/repositories?q=created:>${dateString}&sort=updated&order=desc&per_page=30`
+        `https://api.github.com/search/repositories?q=created:>${dateString}&sort=updated&order=desc&per_page=100`
       )
       const data = await response.json()
       setRecentRepos(data.items)
@@ -82,7 +82,7 @@ export default function Home() {
     setError(null)
     try {
       const response = await fetch(
-        `https://api.github.com/search/repositories?q=${query}&sort=${sortBy}&page=${currentPage}&per_page=${ITEMS_PER_PAGE}`
+        `https://api.github.com/search/repositories?q=${query}&sort=${sortBy}&page=${currentPage}&per_page=100`
       )
       if (!response.ok) {
         throw new Error('Failed to fetch repositories')
