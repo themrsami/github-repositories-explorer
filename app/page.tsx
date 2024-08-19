@@ -7,6 +7,7 @@ import Filter from '@/components/Filter'
 import TabView from '@/components/TabView'
 import { Repository } from '@/types'
 import ErrorMessage from '@/components/ErrorMessage'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export default function Home() {
   const [repos, setRepos] = useState<Repository[]>([])
@@ -113,9 +114,10 @@ export default function Home() {
   }, [activeTab, trendingRepos, recentRepos, filteredRepos])
 
   return (
-    <main className="min-h-screen p-8 bg-gray-50">
+    <main className="min-h-screen p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors">
+      <ThemeToggle />
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
+        <h1 className="text-5xl font-bold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 animate-slide-up">
           GitHub Repository Explorer
         </h1>
         
@@ -149,10 +151,12 @@ export default function Home() {
 
         {loading ? (
           <div className="flex justify-center mt-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 dark:border-blue-400"></div>
           </div>
         ) : (
-          <RepoList repositories={displayedRepos} />
+          <div className="grid gap-6 animate-slide-up">
+            <RepoList repositories={displayedRepos} />
+          </div>
         )}
       </div>
     </main>
