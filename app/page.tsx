@@ -5,9 +5,10 @@ import SearchBar from '@/components/SearchBar'
 import RepoList from '@/components/RepoList'
 import Filter from '@/components/Filter'
 import TabView from '@/components/TabView'
-import { Repository } from '@/types'
+import { Repository } from '@/types/index'
 import ErrorMessage from '@/components/ErrorMessage'
 import ThemeToggle from '@/components/ThemeToggle'
+import RepoDetails from '@/components/RepoDetails'
 
 export default function Home() {
   const [repos, setRepos] = useState<Repository[]>([])
@@ -21,6 +22,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState('search')
   const [trendingRepos, setTrendingRepos] = useState<Repository[]>([])
   const [recentRepos, setRecentRepos] = useState<Repository[]>([])
+  const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null)
 
   // Extract unique languages from repos
   const languages = useMemo(() => {
@@ -155,8 +157,18 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid gap-6 animate-slide-up">
-            <RepoList repositories={displayedRepos} />
+            <RepoList 
+              repositories={displayedRepos} 
+              onShowDetails={(repo) => setSelectedRepo(repo)}
+            />
           </div>
+        )}
+        
+        {selectedRepo && (
+          <RepoDetails 
+            repository={selectedRepo} 
+            onClose={() => setSelectedRepo(null)}
+          />
         )}
       </div>
     </main>
