@@ -16,9 +16,7 @@ export default function Home() {
   const [selectedLanguage, setSelectedLanguage] = useState('')
   const [minStars, setMinStars] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
   const [sortBy, setSortBy] = useState<'stars' | 'forks' | 'updated'>('stars')
-  const ITEMS_PER_PAGE = 10
   const [activeTab, setActiveTab] = useState('search')
   const [trendingRepos, setTrendingRepos] = useState<Repository[]>([])
   const [recentRepos, setRecentRepos] = useState<Repository[]>([])
@@ -47,7 +45,7 @@ export default function Home() {
       )
       const data = await response.json()
       setTrendingRepos(data.items)
-    } catch (error) {
+    } catch {
       setError('Failed to fetch trending repositories')
     }
     setLoading(false)
@@ -65,7 +63,7 @@ export default function Home() {
       )
       const data = await response.json()
       setRecentRepos(data.items)
-    } catch (error) {
+    } catch {
       setError('Failed to fetch recent repositories')
     }
     setLoading(false)
@@ -85,7 +83,7 @@ export default function Home() {
     setError(null)
     try {
       const response = await fetch(
-        `https://api.github.com/search/repositories?q=${query}&sort=${sortBy}&page=${currentPage}&per_page=100`
+        `https://api.github.com/search/repositories?q=${query}&sort=${sortBy}&per_page=100`
       )
       if (!response.ok) {
         throw new Error('Failed to fetch repositories')
@@ -97,12 +95,6 @@ export default function Home() {
     }
     setLoading(false)
   }
-
-  const totalPages = Math.ceil(repos.length / ITEMS_PER_PAGE)
-  const paginatedRepos = filteredRepos.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
 
   const displayedRepos = useMemo(() => {
     switch (activeTab) {

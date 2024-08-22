@@ -1,11 +1,11 @@
 import { Repository } from '@/types/index'
 import { Star, GitFork } from 'lucide-react'
+import Image from 'next/image'
 
 interface RepoCardProps {
   repository: Repository
   onShowDetails: (repo: Repository) => void
 }
-
 
 const RepoCard = ({ repository, onShowDetails }: RepoCardProps) => {
   return (
@@ -33,10 +33,12 @@ const RepoCard = ({ repository, onShowDetails }: RepoCardProps) => {
         </span>
       </div>
       <div className="flex items-center mt-4">
-        <img
+        <Image
           src={repository.owner.avatar_url}
           alt={repository.owner.login}
-          className="w-6 h-6 rounded-full mr-2"
+          width={24}
+          height={24}
+          className="rounded-full mr-2"
         />
         <span className="text-sm text-gray-600 dark:text-gray-400">
           {repository.owner.login}
